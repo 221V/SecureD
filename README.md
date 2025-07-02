@@ -4,7 +4,7 @@ SecureD is a cryptography library for D that is designed to make working with cr
 
 # patched for make usable (AES256_CBC with byte array values)
 
-```
+```d
 import secured.symmetric;
 
 
