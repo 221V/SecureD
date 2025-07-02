@@ -2,6 +2,40 @@
 
 SecureD is a cryptography library for D that is designed to make working with cryptography simple. Simplicity encourages developers to use cryptography in a safe and correct manner.
 
+# patched for make usable (AES256_CBC with byte array values)
+
+```
+import secured.symmetric;
+
+
+// generate random key + iv
+SymmetricKeyIV rand_key_iv = generateSymmetricKeyIV(); // default SymmetricAlgorithm.AES256_CBC
+
+writeln("rand key: ", rand_key_iv.key); // rand key: [97, 194, 240, 51, 184, 56, 132, 40, 138, 168, 45, 4, 214, 7, 27, 97, 192, 8, 138, 106, 107, 30, 41, 156, 223, 146, 226, 50, 127, 214, 162, 243]
+writeln("rand iv: ", rand_key_iv.iv); // rand iv: [150, 210, 119, 154, 57, 30, 245, 110, 233, 118, 153, 90, 64, 117, 86, 25]
+
+
+// encrypt
+//auto test_pass = cast(ubyte[])"12345678";
+auto test_pass = cast(ubyte[])"12345678testтест";
+auto key = cast(ubyte[])[34, 74, 12, 214, 126, 234, 101, 147, 13, 32, 244, 185, 45, 217, 142, 33, 213, 116, 63, 179, 84, 23, 138, 187, 134, 130, 234, 54, 48, 66, 20, 152];
+auto iv = cast(ubyte[])[62, 133, 213, 219, 194, 200, 76, 142, 202, 16, 12, 237, 163, 147, 65, 93];
+
+auto encrypted = encrypt(key, iv, test_pass, SymmetricAlgorithm.AES256_CBC);
+
+writeln("Encrypted: ", encrypted.cipherText); // [223, 86, 210, 55, 192, 240, 144, 50, 159, 4, 238, 182, 171, 185, 80, 48] // [90, 85, 212, 32, 94, 33, 182, 43, 20, 183, 121, 59, 232, 45, 180, 158, 153, 9, 54, 45, 244, 32, 85, 24, 162, 206, 56, 235, 107, 194, 143, 192]
+
+
+// decrypt
+//auto encrypted_data = cast(ubyte[])[223, 86, 210, 55, 192, 240, 144, 50, 159, 4, 238, 182, 171, 185, 80, 48];
+auto encrypted_data = cast(ubyte[])[90, 85, 212, 32, 94, 33, 182, 43, 20, 183, 121, 59, 232, 45, 180, 158, 153, 9, 54, 45, 244, 32, 85, 24, 162, 206, 56, 235, 107, 194, 143, 192];
+
+ubyte[] decrypted = decrypt(key, iv, encrypted_data, SymmetricAlgorithm.AES256_CBC);
+
+writeln("Decrypted: ", decrypted); // [49, 50, 51, 52, 53, 54, 55, 56] // [49, 50, 51, 52, 53, 54, 55, 56, 116, 101, 115, 116, 209, 130, 208, 181, 209, 129, 209, 130]
+writeln("Decrypted: ", cast(string)decrypted); // "12345678" // "12345678testтест"
+```
+
 ## Design Philosophy
 
 - SecureD does not present a menu of options by default. This is because the dizzying array of options presented to developers by other cryptography libraries creates confusion about what they should actually be using 95% of the time. SecureD presents sensible defaults that should be used in 95% of implementations. However, a selection of options is available under the extended API's should a situation arise where such flexibility is required.

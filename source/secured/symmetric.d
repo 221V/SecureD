@@ -83,6 +83,18 @@ public struct SymmetricKey {
     }
 }
 
+
+public struct SymmetricKeyIV{
+  ubyte[] key;
+  ubyte[] iv;
+  SymmetricAlgorithm algorithm;
+}
+
+@safe public SymmetricKeyIV generateSymmetricKeyIV(SymmetricAlgorithm algorithm = SymmetricAlgorithm.AES256_CBC){
+  SymmetricKeyIV KeyIV = { key : random(getCipherKeyLength(algorithm)), iv : random(getCipherIVLength(algorithm)), algorithm: algorithm };
+  return KeyIV;
+}
+
 @safe public SymmetricKey generateSymmetricKey(SymmetricAlgorithm algorithm = SymmetricAlgorithm.Default) {
     SymmetricKey key = SymmetricKey.init;
     key.value = random(getCipherKeyLength(algorithm));
@@ -115,6 +127,13 @@ public struct SymmetricKey {
 
 pragma(inline) @safe private ubyte[] deriveKey(const ubyte[] key, uint bytes, const ubyte[] salt, HashAlgorithm hash = HashAlgorithm.Default) {
     return hkdf_ex(key, salt, string.init, bytes, hash);
+}
+
+@safe public EncryptedData encrypt(const ubyte[] key, const ubyte[] iv, const ubyte[] data, SymmetricAlgorithm algorithm){
+    ubyte[] authTag = [];
+    const ubyte[] associatedData = null;
+    ubyte[] result = encrypt_ex(data, associatedData, key, iv, authTag, algorithm);
+    return EncryptedData(result, iv, authTag, algorithm);
 }
 
 @safe public EncryptedData encrypt(const SymmetricKey key, const ubyte[] data, const ubyte[] associatedData = null) {
@@ -188,6 +207,12 @@ pragma(inline) @safe private ubyte[] deriveKey(const ubyte[] key, uint bytes, co
     return result;
 }
 
+@safe public ubyte[] decrypt(const ubyte[] key, const ubyte[] iv, const ubyte[] data, SymmetricAlgorithm algorithm){
+    const ubyte[] associatedData = [];
+    const ubyte[] authTag = [];
+    return decrypt_ex(data, associatedData, key, iv, authTag, algorithm);
+}
+
 @safe public ubyte[] decrypt(const SymmetricKey key, const EncryptedData data, const ubyte[] associatedData = null) {
     if (data.algorithm != key.algorithm)
         throw new CryptographicException("Key and data algorithms don't match");
@@ -203,8 +228,12 @@ pragma(inline) @safe private ubyte[] deriveKey(const ubyte[] key, uint bytes, co
         throw new CryptographicException("IV must be " ~ to!string(getCipherIVLength(algorithm)) ~ " bytes in length.");
     }
 
-    if (!isAeadCipher(algorithm) && !hmac_verify(authTag, iv, hash(data) ~ hash(associatedData))) {
+    if(!isAeadCipher(algorithm)){
+      // do not make HMAC check for not-AEAD (like AES-CBC)
+    }else{
+      if(!hmac_verify(authTag, iv, hash(data) ~ hash(associatedData))){
         throw new CryptographicException("Failed to verify the authTag.");
+      }
     }
 
     //Get the OpenSSL cipher context
