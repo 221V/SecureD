@@ -60,6 +60,14 @@ ubyte[] decMessage214 = rsa_keypair.decrypt(encMessage214);
 writeln("decMessage214 = ", cast(string)decMessage214);
 ```
 
+rsa example2
+```d
+auto rsa_keypair = new RSA(rsa_private_key, null);
+ubyte[] decrypted_msg = rsa_keypair.decrypt(encrypted_msg);
+//writeln("decrypted_msg = ", decrypted_msg);
+writeln("decrypted_msg = ", cast(string)decrypted_msg);
+```
+
 ## Design Philosophy
 
 - SecureD does not present a menu of options by default. This is because the dizzying array of options presented to developers by other cryptography libraries creates confusion about what they should actually be using 95% of the time. SecureD presents sensible defaults that should be used in 95% of implementations. However, a selection of options is available under the extended API's should a situation arise where such flexibility is required.
