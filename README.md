@@ -36,6 +36,30 @@ writeln("Decrypted: ", decrypted); // [49, 50, 51, 52, 53, 54, 55, 56] // [49, 5
 writeln("Decrypted: ", cast(string)decrypted); // "12345678" // "12345678testтест"
 ```
 
+rsa example
+```d
+import secured.rsa;
+
+auto rsa_keypair = new RSA(2048); // Only allows for (2048/8)-42 = 214 bytes to be asymmetrically RSA encrypted
+scope(exit) rsa_keypair.destroy();
+
+ubyte[] rsa_private_key = rsa_keypair.getPrivateKey(null);
+ubyte[] rsa_public_key = rsa_keypair.getPublicKey();
+//writeln("rsa_private_key = ", rsa_private_key);
+//writeln("rsa_public_key = ", rsa_public_key);
+
+//ubyte[214] plaintext214 = 2; // 2 being an arbitrary value
+auto plaintext214 = cast(ubyte[])"12345678testтест";
+
+ubyte[] encMessage214 = rsa_keypair.encrypt(plaintext214);
+//writeln("encMessage214.length = ", encMessage214.length); // 256
+//writeln("encMessage214 = ", encMessage214);
+
+ubyte[] decMessage214 = rsa_keypair.decrypt(encMessage214);
+//writeln("decMessage214 = ", decMessage214);
+writeln("decMessage214 = ", cast(string)decMessage214);
+```
+
 ## Design Philosophy
 
 - SecureD does not present a menu of options by default. This is because the dizzying array of options presented to developers by other cryptography libraries creates confusion about what they should actually be using 95% of the time. SecureD presents sensible defaults that should be used in 95% of implementations. However, a selection of options is available under the extended API's should a situation arise where such flexibility is required.
